@@ -191,7 +191,8 @@ function pickClue(
   const chosen = topic ?? allowed.find((c) => c.kind === 'dict') ?? entry.clues[0]
   if (!chosen) throw new Error(`У слова ${answer} нет ни одного определения`)
 
-  const category = entry.category
+  // Категория выбранного значения важнее общей: у омонимов они расходятся.
+  const category = chosen.category ?? entry.category
   if (chosen.kind === 'dict') return { text: chosen.text, origin: 'filler', category }
   // Тематическое определение к обычному слову — `dict`; к слову, которого вне
   // романа не существует, — `topic`. Различает наличие словарного значения.

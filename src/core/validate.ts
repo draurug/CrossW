@@ -267,6 +267,13 @@ export function validatePack(pack: Pack): Issue[] {
     }
 
     for (const clue of entry.clues) {
+      if (clue.category !== undefined && isCognate(answer, clue.category)) {
+        issues.push({
+          severity: 'error',
+          where,
+          message: `Категория определения выдаёт ответ: «${clue.category}»`,
+        })
+      }
       if (clue.text.length > MAX_CLUE_LENGTH) {
         issues.push({
           severity: 'warn',
