@@ -10,7 +10,9 @@
 ```bash
 npm run dev        # разработка
 npm test           # vitest: ядро и движок
-npm run validate   # проверка контента: паки и кроссворды
+npm run validate   # проверка контента: гейт, ошибки и предупреждения
+npm run review     # что стоит посмотреть глазами: догадки, не ошибки
+npm run refresh    # gen → content → validate одной командой
 npm run content    # content/ → public/p/  (входит в build)
 npm run build      # статический экспорт в out/
 npm run typecheck  # tsc --noEmit

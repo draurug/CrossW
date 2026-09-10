@@ -248,6 +248,14 @@ export function validatePack(pack: Pack): Issue[] {
       issues.push({ severity: 'error', where, message: 'Нет ни одного определения' })
     }
 
+    if (entry.category === undefined) {
+      issues.push({
+        severity: 'error',
+        where,
+        message: 'Нет категории — без неё не работает первая ступень подсказки',
+      })
+    }
+
     if (entry.category !== undefined) {
       if (entry.category.length > MAX_CATEGORY_LENGTH) {
         issues.push({

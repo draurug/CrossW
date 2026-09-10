@@ -15,7 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "refresh": "npm run gen && npm run content && npm run validate",
+    "review": "tsx tools/review.ts"
   },
   "dependencies": {
     "next": "^15.5.0",
