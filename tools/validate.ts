@@ -5,8 +5,41 @@
  * что стоит посмотреть глазами, но публикации не мешает.
  */
 
+import { parseGrid } from '../src/core/grid'
+import type { Pack, PuzzleSource } from '../src/core/model'
 import { validatePack, validatePuzzle, type Issue } from '../src/core/validate'
 import { readPacks, readPuzzles, readTopics } from './content-io'
+
+/**
+ * Слова для знатоков не должны попадать в лёгкие кроссворды.
+ *
+ * Правило живёт здесь, а не в `core/validate.ts`: проверить его по одному
+ * кроссворду нельзя, нужен ещё и пак его темы. Это единственное место, где
+ * видно и то, и другое.
+ */
+function checkEasyDifficulty(puzzle: PuzzleSource, packs: readonly Pack[]): Issue[] {
+  if (puzzle.difficulty !== 'easy') return []
+
+  const hard = new Set(
+    packs
+      .filter((pack) => pack.topicId === puzzle.topicId)
+      .flatMap((pack) => pack.entries.filter((entry) => entry.hard).map((entry) => entry.answer)),
+  )
+  if (hard.size === 0) return []
+
+  const found = [...new Set(parseGrid(puzzle.grid).entries.map((e) => e.answer))].filter((w) =>
+    hard.has(w),
+  )
+  if (found.length === 0) return []
+
+  return [
+    {
+      severity: 'error',
+      where: puzzle.id,
+      message: `В лёгком кроссворде слова для знатоков: ${found.join(', ')}`,
+    },
+  ]
+}
 
 const RED = '[31m'
 const YELLOW = '[33m'
@@ -59,6 +92,7 @@ function main(): void {
         message: `Тема ${puzzle.topicId} не описана в content/topics.json`,
       })
     }
+    issues.push(...checkEasyDifficulty(puzzle, packs))
     print(issues)
     all.push(...issues)
   }

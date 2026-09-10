@@ -375,7 +375,7 @@ describe('вердикт проверки', () => {
   })
 
   it('верная буква: заполнена одна, неверных нет', () => {
-    const typed = applyLetter(ix, s0, SOLUTION[0] as string)
+    const typed = applyLetter(ix, s0, (SOLUTION as string)[0] as string)
     const outcome = checkOutcome(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
     expect(outcome.cells).toBe(1)
     expect(outcome.filled).toBe(1)
@@ -383,7 +383,7 @@ describe('вердикт проверки', () => {
   })
 
   it('неверная буква попадает в счёт', () => {
-    const wrong = SOLUTION[0] === 'А' ? 'Б' : 'А'
+    const wrong = (SOLUTION as string)[0] === 'А' ? 'Б' : 'А'
     const typed = applyLetter(ix, s0, wrong)
     const outcome = checkOutcome(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
     expect(outcome.wrong).toBe(1)
