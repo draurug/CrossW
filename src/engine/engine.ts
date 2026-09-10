@@ -436,6 +436,43 @@ export function check(
   return { ...state, wrong, checks: state.checks + 1 }
 }
 
+/** Что дала проверка. Нужно, чтобы игроку можно было сказать это словами. */
+export interface CheckOutcome {
+  /** Сколько клеток попало в область проверки. */
+  cells: number
+  /** Сколько из них заполнено. Ноль — проверять нечего. */
+  filled: number
+  /** Сколько неверных. */
+  wrong: number
+}
+
+/**
+ * Результат проверки, не меняя состояния.
+ *
+ * Без этого интерфейс не может отличить «проверил, всё верно» от «ничего не
+ * произошло»: в обоих случаях помеченных клеток нет, а счётчик растёт — и игрок
+ * не понимает, сработала кнопка или нет.
+ */
+export function checkOutcome(
+  ix: PuzzleIndex,
+  state: PlayState,
+  solution: string | null,
+  scope: CheckScope,
+): CheckOutcome {
+  const cells = scopeCells(ix, state, scope)
+  if (!solutionFits(ix, solution)) return { cells: cells.length, filled: 0, wrong: 0 }
+
+  let filled = 0
+  let wrong = 0
+  for (const cell of cells) {
+    const correct = isCorrect(ix, state, solution, cell)
+    if (correct === null) continue
+    filled++
+    if (!correct) wrong++
+  }
+  return { cells: cells.length, filled, wrong }
+}
+
 /**
  * Подсказка: открывает букву под кареткой.
  *

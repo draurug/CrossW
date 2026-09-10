@@ -92,6 +92,7 @@ function Board({ puzzle, solution }: { puzzle: CompiledPuzzle; solution: string 
         checks={api.state.checks}
         ready={api.ready}
         onCheck={api.onCheck}
+        lastCheck={api.lastCheck}
         onHint={api.onHint}
         onClear={api.onClear}
       />

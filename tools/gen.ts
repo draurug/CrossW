@@ -301,6 +301,8 @@ function main(): void {
 
     console.log(`${pack.title} (${pack.entries.length} слов)`)
     const words = pack.entries.map((entry) => entry.answer)
+    /** Слова для знатоков: второстепенные имена и мелкие детали. */
+    const hard = new Set(pack.entries.filter((e) => e.hard).map((e) => e.answer))
     /** Слова, у которых есть тематическое определение: их предпочитаем. */
     const topical = new Set(
       pack.entries.filter((e) => e.clues.some((c) => c.kind === 'topic')).map((e) => e.answer),
@@ -311,7 +313,10 @@ function main(): void {
     SIZES.forEach((size, index) => {
       const id = `${prefixOf(pack.id)}-${index + 1}`
       const title = titles[index] as string
-      const grid = best(words, size.rows, size.cols, TRIES, spent, topical)
+      // В лёгкий кроссворд слова для знатоков не берём вовсе, в средний и
+      // сложный — берём: там они и должны быть.
+      const allowed = size.difficulty === 'easy' ? words.filter((w) => !hard.has(w)) : words
+      const grid = best(allowed, size.rows, size.cols, TRIES, spent, topical)
       const puzzle = build(pack, grid, { id, title, difficulty: size.difficulty })
       const answers = parseGrid(grid).entries.map((entry) => entry.answer)
       const repeats = answers.filter((word) => spent.has(word)).length

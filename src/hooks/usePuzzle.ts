@@ -20,6 +20,7 @@ import {
   backspace,
   buildIndex,
   check,
+  checkOutcome,
   clickCell,
   cursorCell,
   deleteAtCursor,
@@ -34,6 +35,7 @@ import {
   stepEntry,
   storageKey,
   toggleDirection,
+  type CheckOutcome,
   type CheckScope,
   type Cursor,
   type GridMove,
@@ -222,6 +224,8 @@ export interface PuzzleApi {
   onCellClick: (cell: number) => void
   onSelectEntry: (entryId: number) => void
   onCheck: (scope: CheckScope) => void
+  /** Чем закончилась последняя проверка. `null` — с тех пор игрок что-то менял. */
+  lastCheck: CheckOutcome | null
   onHint: () => void
   onClear: () => void
 }
@@ -314,9 +318,21 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
     [ix, move, focusInput],
   )
 
+  /**
+   * Чем закончилась последняя проверка. Живёт отдельно от `PlayState`: это
+   * сообщение сессии, а не часть партии, и в сохранённый прогресс не идёт.
+   */
+  const [lastCheck, setLastCheck] = useState<CheckOutcome | null>(null)
+
   const onCheck = useCallback(
     (scope: CheckScope): void => {
-      setState((prev) => check(ix, prev, solution, scope))
+      setState((prev) => {
+        const outcome = checkOutcome(ix, prev, solution, scope)
+        setLastCheck(outcome)
+        // Проверять пустые клетки незачем, а счётчик проверок за это расти не
+        // должен: игрок ничего не узнал.
+        return outcome.filled === 0 ? prev : check(ix, prev, solution, scope)
+      })
       focusInput()
     },
     [ix, solution, focusInput],
@@ -328,6 +344,7 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
   }, [ix, solution, focusInput])
 
   const onClear = useCallback((): void => {
+    setLastCheck(null)
     setState(initialState(ix))
     timer.set(0)
     focusInput()
@@ -389,6 +406,7 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
       // Всё остальное однобуквенное отдаём движку: чужой алфавит он отсеет сам.
       if (key.length === 1) {
         event.preventDefault()
+        setLastCheck(null)
         setState((prev) => applyLetter(ix, prev, key))
       }
     },
@@ -428,6 +446,7 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
     onCellClick,
     onSelectEntry,
     onCheck,
+    lastCheck,
     onHint,
     onClear,
   }

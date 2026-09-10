@@ -22,6 +22,10 @@
   --cell-word: #dbeafe; /* остальные клетки активного слова */
   --cell-wrong: #fecaca;
   --cell-hint: #d1fae5;
+
+  /* Вердикт проверки: текстом, а не только цветом клетки. */
+  --verdict-ok: #047857;
+  --verdict-bad: #b91c1c;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,6 +42,9 @@
     --cell-word: #1e3a5f;
     --cell-wrong: #7f1d1d;
     --cell-hint: #064e3b;
+
+    --verdict-ok: #34d399;
+    --verdict-bad: #f87171;
   }
 }
 

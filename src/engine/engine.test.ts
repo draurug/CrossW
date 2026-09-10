@@ -8,6 +8,7 @@ import {
   buildIndex,
   cellLabel,
   check,
+  checkOutcome,
   clickCell,
   cursorCell,
   deleteAtCursor,
@@ -363,5 +364,41 @@ describe('тексты', () => {
     expect(text).toContain('2:05')
     expect(text).toContain('подсказок 2')
     expect(text).toContain('проверок 3')
+  })
+})
+
+describe('вердикт проверки', () => {
+  it('пустая область: проверять нечего', () => {
+    const outcome = checkOutcome(ix, s0, SOLUTION, 'word')
+    expect(outcome.filled).toBe(0)
+    expect(outcome.wrong).toBe(0)
+  })
+
+  it('верная буква: заполнена одна, неверных нет', () => {
+    const typed = applyLetter(ix, s0, SOLUTION[0] as string)
+    const outcome = checkOutcome(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
+    expect(outcome.cells).toBe(1)
+    expect(outcome.filled).toBe(1)
+    expect(outcome.wrong).toBe(0)
+  })
+
+  it('неверная буква попадает в счёт', () => {
+    const wrong = SOLUTION[0] === 'А' ? 'Б' : 'А'
+    const typed = applyLetter(ix, s0, wrong)
+    const outcome = checkOutcome(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
+    expect(outcome.wrong).toBe(1)
+  })
+
+  it('без решения вердикта нет, но область известна', () => {
+    const outcome = checkOutcome(ix, s0, null, 'all')
+    expect(outcome.cells).toBe(ix.letterCells.length)
+    expect(outcome.filled).toBe(0)
+  })
+
+  it('состояние не меняется', () => {
+    const before = JSON.stringify(s0.letters)
+    checkOutcome(ix, s0, SOLUTION, 'all')
+    expect(JSON.stringify(s0.letters)).toBe(before)
+    expect(s0.checks).toBe(0)
   })
 })
