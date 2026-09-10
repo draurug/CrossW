@@ -182,7 +182,7 @@ function pickClue(
   pack: Pack,
   answer: string,
   difficulty: Difficulty,
-): { text: string; origin: Origin } {
+): { text: string; origin: Origin; category?: string } {
   const entry = pack.entries.find((e) => e.answer === answer)
   if (!entry) throw new Error(`Слова ${answer} нет в паке ${pack.id}`)
 
@@ -191,10 +191,12 @@ function pickClue(
   const chosen = topic ?? allowed.find((c) => c.kind === 'dict') ?? entry.clues[0]
   if (!chosen) throw new Error(`У слова ${answer} нет ни одного определения`)
 
-  if (chosen.kind === 'dict') return { text: chosen.text, origin: 'filler' }
+  const category = entry.category
+  if (chosen.kind === 'dict') return { text: chosen.text, origin: 'filler', category }
   // Тематическое определение к обычному слову — `dict`; к слову, которого вне
   // романа не существует, — `topic`. Различает наличие словарного значения.
-  return { text: chosen.text, origin: entry.clues.some((c) => c.kind === 'dict') ? 'dict' : 'topic' }
+  const origin: Origin = entry.clues.some((c) => c.kind === 'dict') ? 'dict' : 'topic'
+  return { text: chosen.text, origin, category }
 }
 
 function build(
@@ -205,11 +207,13 @@ function build(
   const parsed = parseGrid(grid)
   const clues: Record<string, string> = {}
   const origins: Record<string, Origin> = {}
+  const categories: Record<string, string> = {}
 
   for (const entry of parsed.entries) {
-    const { text, origin } = pickClue(pack, entry.answer, meta.difficulty)
+    const { text, origin, category } = pickClue(pack, entry.answer, meta.difficulty)
     clues[entry.key] = text
     origins[entry.key] = origin
+    if (category) categories[entry.key] = category
   }
 
   return {
@@ -221,6 +225,7 @@ function build(
     grid,
     clues,
     origins,
+    categories,
   }
 }
 

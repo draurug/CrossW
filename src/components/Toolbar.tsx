@@ -25,6 +25,9 @@ export interface ToolbarProps {
   onCheck: (scope: CheckScope) => void
   /** Итог последней проверки. `null` — с тех пор игрок что-то менял. */
   lastCheck: CheckOutcome | null
+  /** Сколько категорий игрок открыл. */
+  categories: number
+  onRevealCategory: () => void
   onHint: () => void
   onClear: () => void
 }
@@ -36,6 +39,8 @@ export function Toolbar({
   ready,
   onCheck,
   lastCheck,
+  categories,
+  onRevealCategory,
   onHint,
   onClear,
 }: ToolbarProps) {
@@ -47,6 +52,7 @@ export function Toolbar({
       <Counter label={ru.timer} value={<Clock timer={timer} />} />
       <Counter label={ru.hints} value={hints} />
       <Counter label={ru.checks} value={checks} />
+      <Counter label={ru.categories} value={categories} />
       {lastCheck !== null && <CheckVerdict outcome={lastCheck} />}
 
       <div className="ml-auto flex items-center gap-2">
@@ -64,6 +70,11 @@ export function Toolbar({
         </button>
       </div>
 
+      {/* Две ступени помощи: сначала что за слово, потом буква. Категория
+          ничего не открывает в сетке, поэтому доступна и без файла решения. */}
+      <button type="button" className={BUTTON} onClick={onRevealCategory}>
+        {ru.categoryHint}
+      </button>
       <button type="button" className={BUTTON} disabled={!ready} onClick={onHint}>
         {ru.hint}
       </button>

@@ -226,6 +226,10 @@ export interface PuzzleApi {
   onCheck: (scope: CheckScope) => void
   /** Чем закончилась последняя проверка. `null` — с тех пор игрок что-то менял. */
   lastCheck: CheckOutcome | null
+  /** Слова, у которых игрок открыл категорию. */
+  revealedCategories: ReadonlySet<number>
+  /** Открыть категорию активного слова. Первая ступень помощи: букв не выдаёт. */
+  onRevealCategory: () => void
   onHint: () => void
   onClear: () => void
 }
@@ -338,6 +342,23 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
     [ix, solution, focusInput],
   )
 
+  /**
+   * Какие категории игрок уже открыл.
+   *
+   * Живёт в хуке, а не в `PlayState`: это подсказка о том, что за слово, а не
+   * состояние партии — на буквы в сетке она не влияет и в сохранённый прогресс
+   * не идёт. Плата за простоту: после перезагрузки категории снова скрыты.
+   */
+  const [revealedCategories, setRevealedCategories] = useState<ReadonlySet<number>>(new Set())
+
+  const onRevealCategory = useCallback((): void => {
+    setRevealedCategories((prev) => {
+      if (prev.has(state.cursor.entryId)) return prev
+      return new Set(prev).add(state.cursor.entryId)
+    })
+    focusInput()
+  }, [state.cursor.entryId, focusInput])
+
   const onHint = useCallback((): void => {
     setState((prev) => revealLetter(ix, prev, solution))
     focusInput()
@@ -447,6 +468,8 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
     onSelectEntry,
     onCheck,
     lastCheck,
+    revealedCategories,
+    onRevealCategory,
     onHint,
     onClear,
   }

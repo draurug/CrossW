@@ -93,6 +93,8 @@ function Board({ puzzle, solution }: { puzzle: CompiledPuzzle; solution: string 
         ready={api.ready}
         onCheck={api.onCheck}
         lastCheck={api.lastCheck}
+        categories={api.revealedCategories.size}
+        onRevealCategory={api.onRevealCategory}
         onHint={api.onHint}
         onClear={api.onClear}
       />
@@ -128,6 +130,7 @@ function Board({ puzzle, solution }: { puzzle: CompiledPuzzle; solution: string 
             ix={api.ix}
             activeEntryId={api.state.cursor.entryId}
             filledEntries={api.filledEntries}
+            revealedCategories={api.revealedCategories}
             onSelect={api.onSelectEntry}
           />
         </div>

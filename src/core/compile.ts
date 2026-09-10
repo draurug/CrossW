@@ -56,12 +56,14 @@ export function compile(source: PuzzleSource): CompileResult {
           `(ответ «${normalizeAnswer(entry.answer)}»).`,
       )
     }
+    const category = source.categories?.[entry.key]
     return {
       number: entry.id,
       dir: entry.dir,
       // Копия: скомпилированный кроссворд не должен делить массивы с parsed.
       cells: [...entry.cells],
       clue,
+      ...(category ? { category } : {}),
     }
   })
 

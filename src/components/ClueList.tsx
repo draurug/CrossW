@@ -19,10 +19,18 @@ export interface ClueListProps {
   activeEntryId: number
   /** Слова, заполненные целиком: показываем приглушённо. */
   filledEntries: ReadonlySet<number>
+  /** Слова, у которых игрок открыл категорию. */
+  revealedCategories: ReadonlySet<number>
   onSelect: (entryId: number) => void
 }
 
-export function ClueList({ ix, activeEntryId, filledEntries, onSelect }: ClueListProps) {
+export function ClueList({
+  ix,
+  activeEntryId,
+  filledEntries,
+  revealedCategories,
+  onSelect,
+}: ClueListProps) {
   const items = useRef(new Map<number, HTMLLIElement>())
 
   // Каретка ушла в слово за пределами видимости — подтягиваем список к ней.
@@ -45,6 +53,7 @@ export function ClueList({ ix, activeEntryId, filledEntries, onSelect }: ClueLis
               entry={entry}
               active={entry.id === activeEntryId}
               filled={filledEntries.has(entry.id)}
+              showCategory={revealedCategories.has(entry.id)}
               onSelect={onSelect}
               register={(node) => {
                 if (node === null) items.current.delete(entry.id)
@@ -68,11 +77,13 @@ interface ClueItemProps {
   entry: IndexEntry
   active: boolean
   filled: boolean
+  /** Игрок попросил категорию этого слова. */
+  showCategory: boolean
   onSelect: (entryId: number) => void
   register: (node: HTMLLIElement | null) => void
 }
 
-function ClueItem({ entry, active, filled, onSelect, register }: ClueItemProps) {
+function ClueItem({ entry, active, filled, showCategory, onSelect, register }: ClueItemProps) {
   return (
     <li ref={register}>
       <button
@@ -87,7 +98,14 @@ function ClueItem({ entry, active, filled, onSelect, register }: ClueItemProps) 
         style={filled && !active ? { color: 'var(--muted)' } : undefined}
       >
         <span className="w-6 shrink-0 text-right tabular-nums font-semibold">{entry.number}</span>
-        <span>{entry.clue}</span>
+        <span>
+          {entry.clue}
+          {showCategory && (
+            <em className="ml-1 not-italic" style={{ color: 'var(--muted)' }}>
+              — {entry.category ?? ru.categoryUnknown}
+            </em>
+          )}
+        </span>
       </button>
     </li>
   )

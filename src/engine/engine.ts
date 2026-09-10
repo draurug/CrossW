@@ -38,6 +38,8 @@ export interface IndexEntry {
   /** Плоские индексы клеток по порядку чтения. */
   cells: readonly number[]
   clue: string
+  /** Что за слово: «предмет одежды». Первая ступень подсказки, показывается по просьбе. */
+  category?: string
 }
 
 /** Слово, которому принадлежит клетка, и позиция клетки внутри него. */
@@ -101,6 +103,7 @@ export function buildIndex(puzzle: CompiledPuzzle): PuzzleIndex {
     dir: entry.dir,
     cells: [...entry.cells],
     clue: entry.clue,
+    ...(entry.category ? { category: entry.category } : {}),
   }))
 
   const byId = new Map<number, IndexEntry>()

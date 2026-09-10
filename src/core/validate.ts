@@ -33,14 +33,24 @@ export interface PuzzleStats {
   maxWordLength: number
 }
 
-/** Максимальная длина определения: должно читаться в списке без переносов на три строки. */
-export const MAX_CLUE_LENGTH = 40
+/**
+ * Максимальная длина определения.
+ *
+ * Калибруется по вёрстке: список определений справа шириной около 320 пикселей
+ * держит две строки, то есть примерно 55 символов. Прежние 40 были поставлены
+ * на глаз и мешали писать определения с категорией — «Предмет одежды, в котором
+ * Иван явился» в них не влезало.
+ */
+export const MAX_CLUE_LENGTH = 55
 
 /** Слова короче трёх букв в кроссвордах не используются. */
 export const MIN_WORD_LENGTH = 3
 
 /** Минимальная доля тематических подсказок в кроссворде. spec §5.8. */
 export const MIN_TOPIC_SHARE = 0.6
+
+/** Категория — два-три слова: «предмет одежды», а не пересказ определения. */
+export const MAX_CATEGORY_LENGTH = 30
 
 /**
  * Однокоренное ли определение с ответом.
@@ -236,6 +246,24 @@ export function validatePack(pack: Pack): Issue[] {
 
     if (entry.clues.length === 0) {
       issues.push({ severity: 'error', where, message: 'Нет ни одного определения' })
+    }
+
+    if (entry.category !== undefined) {
+      if (entry.category.length > MAX_CATEGORY_LENGTH) {
+        issues.push({
+          severity: 'warn',
+          where,
+          message: `Категория длиннее ${MAX_CATEGORY_LENGTH} символов: «${entry.category}»`,
+        })
+      }
+      // Категория с корнем ответа внутри — это не подсказка, а выданный ответ.
+      if (isCognate(answer, entry.category)) {
+        issues.push({
+          severity: 'error',
+          where,
+          message: `Категория выдаёт ответ: «${entry.category}»`,
+        })
+      }
     }
 
     for (const clue of entry.clues) {
