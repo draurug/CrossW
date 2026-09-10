@@ -176,7 +176,7 @@ function findSpot(grid: Grid, word: string, known: ReadonlySet<string>, rand: ()
  * Определение к ответу.
  *
  * Предпочитаем тематическое: в нём весь смысл продукта. В лёгкий кроссворд не
- * берём помеченные `hard` — это спойлеры финала (ТЗ §6.6).
+ * берём помеченные `hard` — это спойлеры финала (spec §6.6).
  */
 function pickClue(
   pack: Pack,
@@ -274,15 +274,15 @@ const SIZES: { difficulty: Difficulty; rows: number; cols: number }[] = [
  * Придумываются руками: осмысленное название из книги лучше «Кроссворд №2».
  */
 const TITLES: Record<string, readonly [string, string, string]> = {
-  'mim-ru': ['Патриаршие пруды', 'Нехорошая квартира', 'Бал у сатаны'],
+  'master-and-margarita-ru': ['Патриаршие пруды', 'Нехорошая квартира', 'Бал у сатаны'],
   'sherlock-ru': ['Бейкер-стрит', 'Собака на болотах', 'Рейхенбахский водопад'],
-  '12-chairs-ru': ['Старгород', 'Погоня за гарнитуром', 'Сеанс в Васюках'],
+  'twelve-chairs-ru': ['Старгород', 'Погоня за гарнитуром', 'Сеанс в Васюках'],
 }
 
 /** Сколько сеток перебрать на каждый кроссворд. */
 const TRIES = 8
 
-/** Короткий префикс для id кроссвордов темы: `mim-ru` → `mim`. */
+/** Префикс для id кроссвордов темы: `sherlock-ru` → `sherlock`. */
 const prefixOf = (packId: string): string => packId.replace(/-ru$/, '')
 
 function main(): void {

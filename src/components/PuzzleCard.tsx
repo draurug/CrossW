@@ -12,7 +12,7 @@ export function PuzzleCard({ puzzle }: { puzzle: PuzzleCardData }) {
   return (
     <li>
       <Link
-        href={`/krossvord/${puzzle.id}/`}
+        href={`/crossword/${puzzle.id}/`}
         className="flex items-baseline justify-between gap-6 border p-5 transition-colors hover:border-current"
         style={{ borderColor: 'var(--cell-line)' }}
       >

@@ -10,7 +10,7 @@ export function TopicCard({ topic, puzzleCount }: { topic: Topic; puzzleCount: n
   return (
     <li className="h-full">
       <Link
-        href={`/tema/${topic.slug}/`}
+        href={`/topic/${topic.slug}/`}
         className="flex h-full flex-col rounded border p-6 transition-colors hover:border-current"
         style={{ borderColor: 'var(--cell-line)' }}
       >

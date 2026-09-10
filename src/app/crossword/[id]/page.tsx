@@ -52,7 +52,7 @@ export default async function PuzzlePage({ params }: { params: Promise<{ id: str
         <h1 className="text-3xl font-bold tracking-tight">{card.title}</h1>
         <p className="mt-2 flex flex-wrap gap-x-3 text-sm" style={{ color: 'var(--muted)' }}>
           {topic !== undefined && (
-            <Link href={`/tema/${topic.slug}/`} className="underline underline-offset-2">
+            <Link href={`/topic/${topic.slug}/`} className="underline underline-offset-2">
               {topic.title}
             </Link>
           )}
