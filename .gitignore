@@ -1,12 +1,28 @@
+# зависимости и сборка
 node_modules/
 .next/
 out/
-*.tsbuildinfo
-next-env.d.ts
 
-# Артефакт сборки: content/ → public/p/. Собирается командой `npm run content`.
+# артефакты сборки контента: собираются из content/ командой `npm run content`
 public/p/
-
-.DS_Store
-.env*.local
 src/generated/
+
+# типы и кэши TypeScript
+next-env.d.ts
+*.tsbuildinfo
+
+# исходные тексты книг: нужны для вытаскивания цитат, в репозиторий не кладутся
+content/sources/
+
+# логи и временные файлы
+*.log
+npm-debug.log*
+
+# окружение
+.env*.local
+
+# ОС и редакторы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
