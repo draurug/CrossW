@@ -57,6 +57,7 @@ export function compile(source: PuzzleSource): CompileResult {
       )
     }
     const category = source.categories?.[entry.key]
+    const quote = source.quotes?.[entry.key]
     return {
       number: entry.id,
       dir: entry.dir,
@@ -64,6 +65,7 @@ export function compile(source: PuzzleSource): CompileResult {
       cells: [...entry.cells],
       clue,
       ...(category ? { category } : {}),
+      ...(quote ? { quote } : {}),
     }
   })
 

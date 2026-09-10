@@ -230,6 +230,10 @@ export interface PuzzleApi {
   revealedCategories: ReadonlySet<number>
   /** Открыть категорию активного слова. Первая ступень помощи: букв не выдаёт. */
   onRevealCategory: () => void
+  /** Слова, у которых игрок открыл цитату. */
+  revealedQuotes: ReadonlySet<number>
+  /** Открыть цитату активного слова. Вторая ступень: букв тоже не выдаёт. */
+  onRevealQuote: () => void
   onHint: () => void
   onClear: () => void
 }
@@ -359,6 +363,17 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
     focusInput()
   }, [state.cursor.entryId, focusInput])
 
+  /** Открытые цитаты. Хранятся так же и по той же причине, что категории. */
+  const [revealedQuotes, setRevealedQuotes] = useState<ReadonlySet<number>>(new Set())
+
+  const onRevealQuote = useCallback((): void => {
+    setRevealedQuotes((prev) => {
+      if (prev.has(state.cursor.entryId)) return prev
+      return new Set(prev).add(state.cursor.entryId)
+    })
+    focusInput()
+  }, [state.cursor.entryId, focusInput])
+
   const onHint = useCallback((): void => {
     setState((prev) => revealLetter(ix, prev, solution))
     focusInput()
@@ -470,6 +485,8 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
     lastCheck,
     revealedCategories,
     onRevealCategory,
+    revealedQuotes,
+    onRevealQuote,
     onHint,
     onClear,
   }

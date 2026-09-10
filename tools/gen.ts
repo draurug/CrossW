@@ -182,7 +182,7 @@ function pickClue(
   pack: Pack,
   answer: string,
   difficulty: Difficulty,
-): { text: string; origin: Origin; category?: string } {
+): { text: string; origin: Origin; category?: string; quote?: string } {
   const entry = pack.entries.find((e) => e.answer === answer)
   if (!entry) throw new Error(`Слова ${answer} нет в паке ${pack.id}`)
 
@@ -193,11 +193,14 @@ function pickClue(
 
   // Категория выбранного значения важнее общей: у омонимов они расходятся.
   const category = chosen.category ?? entry.category
+  // Цитата привязана к значению: у словарного её не бывает, и подставлять
+  // цитату от другого определения нельзя — она про другой смысл слова.
+  const quote = chosen.quote
   if (chosen.kind === 'dict') return { text: chosen.text, origin: 'filler', category }
   // Тематическое определение к обычному слову — `dict`; к слову, которого вне
   // романа не существует, — `topic`. Различает наличие словарного значения.
   const origin: Origin = entry.clues.some((c) => c.kind === 'dict') ? 'dict' : 'topic'
-  return { text: chosen.text, origin, category }
+  return { text: chosen.text, origin, category, quote }
 }
 
 function build(
@@ -209,12 +212,14 @@ function build(
   const clues: Record<string, string> = {}
   const origins: Record<string, Origin> = {}
   const categories: Record<string, string> = {}
+  const quotes: Record<string, string> = {}
 
   for (const entry of parsed.entries) {
-    const { text, origin, category } = pickClue(pack, entry.answer, meta.difficulty)
+    const { text, origin, category, quote } = pickClue(pack, entry.answer, meta.difficulty)
     clues[entry.key] = text
     origins[entry.key] = origin
     if (category) categories[entry.key] = category
+    if (quote) quotes[entry.key] = quote
   }
 
   return {
@@ -227,6 +232,9 @@ function build(
     clues,
     origins,
     categories,
+    // Пак без цитат не должен получать пустое поле: иначе перегенерация
+    // трогает файлы тем, к которым цитаты никто не писал.
+    ...(Object.keys(quotes).length > 0 ? { quotes } : {}),
   }
 }
 
@@ -283,6 +291,7 @@ const TITLES: Record<string, readonly [string, string, string]> = {
   'master-and-margarita-ru': ['Патриаршие пруды', 'Нехорошая квартира', 'Бал у сатаны'],
   'sherlock-ru': ['Бейкер-стрит', 'Собака на болотах', 'Рейхенбахский водопад'],
   'twelve-chairs-ru': ['Старгород', 'Погоня за гарнитуром', 'Сеанс в Васюках'],
+  'emelya-ru': ['Щука в проруби', 'Сани без коня', 'Печь едет к царю'],
 }
 
 /** Сколько сеток перебрать на каждый кроссворд. */

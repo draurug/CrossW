@@ -40,6 +40,8 @@ export interface IndexEntry {
   clue: string
   /** Что за слово: «предмет одежды». Первая ступень подсказки, показывается по просьбе. */
   category?: string
+  /** Фраза из книги с отточием вместо ответа. Вторая ступень подсказки. */
+  quote?: string
 }
 
 /** Слово, которому принадлежит клетка, и позиция клетки внутри него. */
@@ -104,6 +106,7 @@ export function buildIndex(puzzle: CompiledPuzzle): PuzzleIndex {
     cells: [...entry.cells],
     clue: entry.clue,
     ...(entry.category ? { category: entry.category } : {}),
+    ...(entry.quote ? { quote: entry.quote } : {}),
   }))
 
   const byId = new Map<number, IndexEntry>()

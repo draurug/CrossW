@@ -21,6 +21,8 @@ export interface ClueListProps {
   filledEntries: ReadonlySet<number>
   /** Слова, у которых игрок открыл категорию. */
   revealedCategories: ReadonlySet<number>
+  /** Слова, у которых игрок открыл цитату. */
+  revealedQuotes: ReadonlySet<number>
   onSelect: (entryId: number) => void
 }
 
@@ -29,6 +31,7 @@ export function ClueList({
   activeEntryId,
   filledEntries,
   revealedCategories,
+  revealedQuotes,
   onSelect,
 }: ClueListProps) {
   const items = useRef(new Map<number, HTMLLIElement>())
@@ -54,6 +57,7 @@ export function ClueList({
               active={entry.id === activeEntryId}
               filled={filledEntries.has(entry.id)}
               showCategory={revealedCategories.has(entry.id)}
+              showQuote={revealedQuotes.has(entry.id)}
               onSelect={onSelect}
               register={(node) => {
                 if (node === null) items.current.delete(entry.id)
@@ -79,11 +83,21 @@ interface ClueItemProps {
   filled: boolean
   /** Игрок попросил категорию этого слова. */
   showCategory: boolean
+  /** Игрок попросил цитату этого слова. */
+  showQuote: boolean
   onSelect: (entryId: number) => void
   register: (node: HTMLLIElement | null) => void
 }
 
-function ClueItem({ entry, active, filled, showCategory, onSelect, register }: ClueItemProps) {
+function ClueItem({
+  entry,
+  active,
+  filled,
+  showCategory,
+  showQuote,
+  onSelect,
+  register,
+}: ClueItemProps) {
   return (
     <li ref={register}>
       <button
@@ -104,6 +118,13 @@ function ClueItem({ entry, active, filled, showCategory, onSelect, register }: C
             <em className="ml-1 not-italic" style={{ color: 'var(--muted)' }}>
               — {entry.category ?? ru.categoryUnknown}
             </em>
+          )}
+          {/* Цитата — отдельной строкой: она длиннее категории и в строку
+              с определением не встаёт, а курсивом видно, что это чужая речь. */}
+          {showQuote && (
+            <span className="mt-0.5 block italic" style={{ color: 'var(--muted)' }}>
+              {entry.quote ?? ru.quoteMissing}
+            </span>
           )}
         </span>
       </button>

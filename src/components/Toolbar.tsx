@@ -28,6 +28,9 @@ export interface ToolbarProps {
   /** Сколько категорий игрок открыл. */
   categories: number
   onRevealCategory: () => void
+  /** Сколько цитат игрок открыл. */
+  quotes: number
+  onRevealQuote: () => void
   onHint: () => void
   onClear: () => void
 }
@@ -41,6 +44,8 @@ export function Toolbar({
   lastCheck,
   categories,
   onRevealCategory,
+  quotes,
+  onRevealQuote,
   onHint,
   onClear,
 }: ToolbarProps) {
@@ -53,6 +58,7 @@ export function Toolbar({
       <Counter label={ru.hints} value={hints} />
       <Counter label={ru.checks} value={checks} />
       <Counter label={ru.categories} value={categories} />
+      <Counter label={ru.quotes} value={quotes} />
       {lastCheck !== null && <CheckVerdict outcome={lastCheck} />}
 
       <div className="ml-auto flex items-center gap-2">
@@ -70,10 +76,13 @@ export function Toolbar({
         </button>
       </div>
 
-      {/* Две ступени помощи: сначала что за слово, потом буква. Категория
-          ничего не открывает в сетке, поэтому доступна и без файла решения. */}
+      {/* Три ступени помощи: что за слово → фраза из книги → буква. Первые две
+          ничего не открывают в сетке, поэтому доступны и без файла решения. */}
       <button type="button" className={BUTTON} onClick={onRevealCategory}>
         {ru.categoryHint}
+      </button>
+      <button type="button" className={BUTTON} onClick={onRevealQuote}>
+        {ru.quoteHint}
       </button>
       <button type="button" className={BUTTON} disabled={!ready} onClick={onHint}>
         {ru.hint}
