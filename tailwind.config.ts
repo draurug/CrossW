@@ -15,6 +15,7 @@ export default {
           active: 'var(--cell-active)',
           word: 'var(--cell-word)',
           wrong: 'var(--cell-wrong)',
+          correct: 'var(--cell-correct)',
           hint: 'var(--cell-hint)',
         },
       },

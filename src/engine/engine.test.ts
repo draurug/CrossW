@@ -402,3 +402,39 @@ describe('вердикт проверки', () => {
     expect(s0.checks).toBe(0)
   })
 })
+
+describe('подтверждение верных букв', () => {
+  it('проверка помечает верную букву как подтверждённую', () => {
+    const typed = applyLetter(ix, s0, (SOLUTION as string)[0] as string)
+    const checked = check(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
+    const cell = cursorCell(ix, { entryId: 1, pos: 0 }) as number
+    expect(checked.correct.has(cell)).toBe(true)
+    expect(checked.wrong.has(cell)).toBe(false)
+  })
+
+  it('исправление буквы снимает подтверждение со старой', () => {
+    const typed = applyLetter(ix, s0, (SOLUTION as string)[0] as string)
+    const checked = check(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
+    const cell = cursorCell(ix, { entryId: 1, pos: 0 }) as number
+    const other = (SOLUTION as string)[0] === 'А' ? 'Б' : 'А'
+    const retyped = applyLetter(ix, { ...checked, cursor: { entryId: 1, pos: 0 } }, other)
+    expect(retyped.correct.has(cell)).toBe(false)
+  })
+
+  it('неверная буква в подтверждённые не попадает', () => {
+    const other = (SOLUTION as string)[0] === 'А' ? 'Б' : 'А'
+    const typed = applyLetter(ix, s0, other)
+    const checked = check(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
+    const cell = cursorCell(ix, { entryId: 1, pos: 0 }) as number
+    expect(checked.correct.has(cell)).toBe(false)
+    expect(checked.wrong.has(cell)).toBe(true)
+  })
+
+  it('восстановленный прогресс приходит без пометок проверки', () => {
+    const typed = applyLetter(ix, s0, (SOLUTION as string)[0] as string)
+    const checked = check(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
+    const saved = serializeProgress(ix, checked, { elapsedMs: 0, done: false })
+    const restored = parseProgress(ix, JSON.parse(JSON.stringify(saved)))
+    expect(restored?.state.correct.size).toBe(0)
+  })
+})

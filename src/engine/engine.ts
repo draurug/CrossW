@@ -151,6 +151,8 @@ export interface PlayState {
   revealed: ReadonlySet<number>
   /** Клетки, помеченные проверкой как неверные. */
   wrong: ReadonlySet<number>
+  /** Клетки, которые проверка подтвердила как верные. */
+  correct: ReadonlySet<number>
   cursor: Cursor
   /** Сколько букв открыто подсказкой. Каждая клетка считается один раз. */
   hints: number
@@ -165,6 +167,7 @@ export function initialState(ix: PuzzleIndex): PlayState {
     letters: {},
     revealed: new Set<number>(),
     wrong: new Set<number>(),
+    correct: new Set<number>(),
     cursor: { entryId: first?.id ?? 0, pos: 0 },
     hints: 0,
     checks: 0,
@@ -310,10 +313,12 @@ function writeCell(state: PlayState, cell: number, letter: string | null): PlayS
   if (letter === null) delete letters[cell]
   else letters[cell] = letter
 
-  // Пометки проверки и подсказки относятся к прежней букве и снимаются вместе с ней.
+  // Пометки проверки и подсказки относятся к прежней букве и снимаются вместе
+  // с ней: подтверждение старой буквы про новую ничего не говорит.
   const revealed = dropFrom(state.revealed, cell)
   const wrong = dropFrom(state.wrong, cell)
-  return { ...state, letters, revealed, wrong }
+  const correct = dropFrom(state.correct, cell)
+  return { ...state, letters, revealed, wrong, correct }
 }
 
 function dropFrom(set: ReadonlySet<number>, cell: number): ReadonlySet<number> {
@@ -431,12 +436,22 @@ export function check(
 ): PlayState {
   if (!solutionFits(ix, solution)) return state
   const wrong = new Set(state.wrong)
+  const correct = new Set(state.correct)
   for (const cell of scopeCells(ix, state, scope)) {
-    const correct = isCorrect(ix, state, solution, cell)
-    if (correct === false) wrong.add(cell)
-    else wrong.delete(cell)
+    const verdict = isCorrect(ix, state, solution, cell)
+    if (verdict === true) {
+      wrong.delete(cell)
+      correct.add(cell)
+    } else if (verdict === false) {
+      wrong.add(cell)
+      correct.delete(cell)
+    } else {
+      // Клетка пуста: проверять нечего, старые пометки к ней уже не относятся.
+      wrong.delete(cell)
+      correct.delete(cell)
+    }
   }
-  return { ...state, wrong, checks: state.checks + 1 }
+  return { ...state, wrong, correct, checks: state.checks + 1 }
 }
 
 /** Что дала проверка. Нужно, чтобы игроку можно было сказать это словами. */
@@ -604,6 +619,7 @@ export function parseProgress(ix: PuzzleIndex, raw: unknown): RestoredProgress |
     letters,
     revealed,
     wrong: new Set<number>(),
+    correct: new Set<number>(),
     cursor: initialState(ix).cursor,
     hints: saved.hints,
     checks: saved.checks,

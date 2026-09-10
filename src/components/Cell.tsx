@@ -11,16 +11,21 @@
 import { memo } from 'react'
 
 /**
- * Вид клетки в порядке приоритета: под кареткой → помечена неверной →
- * открыта подсказкой → входит в активное слово → обычная.
+ * Вид клетки в порядке приоритета: под кареткой → помечена неверной → открыта
+ * подсказкой → подтверждена проверкой → входит в активное слово → обычная.
+ *
+ * Подсказка выше подтверждения не случайно: открытая буква верна по построению,
+ * и если её красить зелёным вместе с проверенными, игрок перестанет видеть, где
+ * он справился сам, а где ему подсказали.
  */
-export type CellKind = 'block' | 'active' | 'wrong' | 'hint' | 'word' | 'plain'
+export type CellKind = 'block' | 'active' | 'wrong' | 'hint' | 'correct' | 'word' | 'plain'
 
 const BACKGROUND: Record<CellKind, string> = {
   block: 'bg-cell-block',
   active: 'bg-cell-active',
   wrong: 'bg-cell-wrong',
   hint: 'bg-cell-hint',
+  correct: 'bg-cell-correct',
   word: 'bg-cell-word',
   plain: 'bg-cell-bg',
 }

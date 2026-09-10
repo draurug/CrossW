@@ -21,7 +21,8 @@
   --cell-active: #fcd34d; /* клетка под кареткой */
   --cell-word: #dbeafe; /* остальные клетки активного слова */
   --cell-wrong: #fecaca;
-  --cell-hint: #d1fae5;
+  --cell-correct: #d1fae5; /* проверка подтвердила букву */
+  --cell-hint: #ede9fe; /* букву открыла подсказка, а не игрок */
 
   /* Вердикт проверки: текстом, а не только цветом клетки. */
   --verdict-ok: #047857;
@@ -41,7 +42,8 @@
     --cell-active: #a16207;
     --cell-word: #1e3a5f;
     --cell-wrong: #7f1d1d;
-    --cell-hint: #064e3b;
+    --cell-correct: #065f46;
+    --cell-hint: #4c1d95;
 
     --verdict-ok: #34d399;
     --verdict-bad: #f87171;

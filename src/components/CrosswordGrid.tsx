@@ -101,6 +101,7 @@ function kindOf(
   if (index === cursor) return 'active'
   if (state.wrong.has(index)) return 'wrong'
   if (state.revealed.has(index)) return 'hint'
+  if (state.correct.has(index)) return 'correct'
   if (wordCells.has(index)) return 'word'
   return 'plain'
 }
