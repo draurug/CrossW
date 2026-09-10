@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Палитра одним местом. Компоненты используют токены (bg-cell-active), а не
+ * конкретные цвета, поэтому тёмная тема — это переопределение переменных ниже,
+ * а не второй набор классов в каждой клетке.
+ */
+:root {
+  /* Фон чуть теплее белого: клетки кроссворда белые, и на чистом белом они
+     сливались бы со страницей. */
+  --bg: #faf9f7;
+  --fg: #1f2937;
+  --muted: #6b7280;
+  --accent: #2563eb;
+
+  --cell-bg: #ffffff;
+  --cell-block: #111827;
+  --cell-line: #9ca3af;
+  --cell-active: #fcd34d; /* клетка под кареткой */
+  --cell-word: #dbeafe; /* остальные клетки активного слова */
+  --cell-wrong: #fecaca;
+  --cell-hint: #d1fae5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0f19;
+    --fg: #e5e7eb;
+    --muted: #9ca3af;
+    --accent: #60a5fa;
+
+    --cell-bg: #1f2937;
+    --cell-block: #030712;
+    --cell-line: #4b5563;
+    --cell-active: #a16207;
+    --cell-word: #1e3a5f;
+    --cell-wrong: #7f1d1d;
+    --cell-hint: #064e3b;
+  }
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+/* Фокус виден всегда: по сайту играют с клавиатуры. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

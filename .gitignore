@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Артефакт сборки: content/ → public/p/. Собирается командой `npm run content`.
+public/p/
+
+.DS_Store
+.env*.local
+src/generated/
