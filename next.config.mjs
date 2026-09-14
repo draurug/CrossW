@@ -2,7 +2,7 @@
 const nextConfig = {
   // Сайт полностью статический: ни сервера, ни базы. `next build` кладёт готовые
   // файлы в out/, их можно отдать откуда угодно.
-  output: 'export',
+  output: 'standalone',
   reactStrictMode: true,
   images: { unoptimized: true },
   // Со статическим экспортом ссылки должны вести на каталоги: /krossvord/mim-1/
