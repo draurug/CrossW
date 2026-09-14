@@ -16,6 +16,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseGrid } from '../src/core/grid'
 import { BLOCK, type Difficulty, type Origin, type Pack, type PuzzleSource } from '../src/core/model'
+import { MIN_TOPIC_SHARE } from '../src/core/validate'
 import { CONTENT_DIR, readPacks } from './content-io'
 
 /** Детерминизм по сиду: тот же сид даёт тот же кроссворд. */
@@ -79,6 +80,12 @@ function tryPlace(
   const parsed = parseGrid(render(next))
   if (parsed.entries.some((entry) => !known.has(entry.answer))) return null
 
+  // Одно слово дважды в одной сетке — два одинаковых ответа под разными
+  // номерами. Цикл укладки такого не сделает, а вот попутно склеенное слово
+  // запросто совпадёт с уже стоящим: проверять надо готовую сетку, а не намерение.
+  const answers = parsed.entries.map((entry) => entry.answer)
+  if (new Set(answers).size !== answers.length) return null
+
   // Клетка, не входящая ни в одно слово, нерешаема: её нечем подсказать.
   const covered = new Set(parsed.entries.flatMap((entry) => entry.cells))
   if (parsed.letterCells.some((cell) => !covered.has(cell))) return null
@@ -109,8 +116,9 @@ function generate(
   /**
    * Порядок очереди решает, каким выйдет кроссворд. Сначала свежие слова с
    * тематическим определением — в них весь смысл продукта и порог 60% из ТЗ;
-   * слова без тематического определения и уже потраченные на другие сетки темы
-   * идут в конец, но не запрещены: иначе на третьей сетке не хватит материала.
+   * слова без тематического определения идут в конец. Потраченные на другие
+   * сетки темы сюда уже не доходят — их вычитает вызывающий (`main`), поэтому
+   * `avoid` здесь обычно пуст и остаётся лишь страховкой.
    */
   const rank = (w: string): number => (avoid.has(w) ? 2 : 0) + (topical.has(w) ? 0 : 1)
   const pool = shuffle(words, rand).sort((a, b) => rank(a) - rank(b))
@@ -244,14 +252,21 @@ function build(
  * Слов побольше — но пересечения важнее: слово без пересечений угадывается без
  * опоры на соседей, и кроссворд рассыпается в список вопросов. Поэтому доля
  * пересечений входит в оценку с большим весом.
+ *
+ * Тематичность тут не украшение, а условие годности: сетку с долей ниже порога
+ * из ТЗ валидатор просто не пропустит, поэтому она получает штраф, рядом
+ * с которым остальные слагаемые уже не имеют значения.
  */
-function score(grid: string[]): number {
+function score(grid: string[], topical: ReadonlySet<string>): number {
   const parsed = parseGrid(grid)
   const crossing = parsed.letterCells.filter(
     (cell) => parsed.entries.filter((entry) => entry.cells.includes(cell)).length > 1,
   ).length
   const crossShare = crossing / Math.max(1, parsed.letterCells.length)
-  return parsed.entries.length + crossShare * 60
+  const themed = parsed.entries.filter((entry) => topical.has(entry.answer)).length
+  const topicShare = themed / Math.max(1, parsed.entries.length)
+  const unusable = topicShare < MIN_TOPIC_SHARE ? 1000 : 0
+  return parsed.entries.length + crossShare * 60 + topicShare * 30 - unusable
 }
 
 /** Лучшая сетка из нескольких попыток. Перебор сидов дешевле умного алгоритма. */
@@ -267,7 +282,7 @@ function best(
   let bestScore = -1
   for (let seed = 1; seed <= tries; seed++) {
     const grid = generate(words, rows, cols, seed * 2654435761, avoid, topical)
-    const value = score(grid)
+    const value = score(grid, topical)
     if (value > bestScore) {
       bestScore = value
       bestGrid = grid
@@ -276,26 +291,45 @@ function best(
   return bestGrid as string[]
 }
 
-/** Размеры и сложности: одинаковые для всех тем, названия — свои у каждой. */
-const SIZES: { difficulty: Difficulty; rows: number; cols: number }[] = [
+/**
+ * Лестница уровней темы: от лёгких к сложным, одинаковая для всех тем.
+ *
+ * Сколько их может быть — считается не из головы, а из запаса слов. Слова
+ * внутри темы не повторяются, кроссворд тратит в среднем 23 слова, пак —
+ * 175–200 слов. Отсюда потолок примерно в восемь уровней; девятому уже нечем
+ * заполниться, и генератор молча выдал бы сетку мельче заказанной. Хотите
+ * больше уровней — растите пак, а не этот список.
+ */
+const LEVELS: { difficulty: Difficulty; rows: number; cols: number }[] = [
+  { difficulty: 'easy', rows: 11, cols: 11 },
+  { difficulty: 'easy', rows: 11, cols: 11 },
   { difficulty: 'easy', rows: 11, cols: 11 },
   { difficulty: 'medium', rows: 13, cols: 13 },
+  { difficulty: 'medium', rows: 13, cols: 13 },
+  { difficulty: 'medium', rows: 13, cols: 13 },
+  { difficulty: 'hard', rows: 15, cols: 15 },
   { difficulty: 'hard', rows: 15, cols: 15 },
 ]
 
 /**
- * Названия кроссвордов по паку — по одному на каждый размер из `SIZES`.
- * Придумываются руками: осмысленное название из книги лучше «Кроссворд №2».
+ * Названия уровней по паку. Придумываются руками: осмысленное название лучше
+ * порядкового номера. Список может быть короче лестницы уровней — недостающие
+ * получают «Уровень N», и это нормальный промежуточный вид: придумать восемь
+ * хороших названий на тему сразу удаётся редко.
  */
-const TITLES: Record<string, readonly [string, string, string]> = {
+const TITLES: Record<string, readonly string[]> = {
   'master-and-margarita-ru': ['Патриаршие пруды', 'Нехорошая квартира', 'Бал у сатаны'],
   'sherlock-ru': ['Бейкер-стрит', 'Собака на болотах', 'Рейхенбахский водопад'],
   'twelve-chairs-ru': ['Старгород', 'Погоня за гарнитуром', 'Сеанс в Васюках'],
   'emelya-ru': ['Щука в проруби', 'Сани без коня', 'Печь едет к царю'],
 }
 
-/** Сколько сеток перебрать на каждый кроссворд. */
-const TRIES = 8
+/**
+ * Сколько сеток перебрать на каждый кроссворд. Восьми хватало, пока оценка
+ * не штрафовала за низкую тематичность; теперь часть попыток отбраковывается
+ * целиком, и выбирать надо из большего числа.
+ */
+const TRIES = 24
 
 /** Префикс для id кроссвордов темы: `sherlock-ru` → `sherlock`. */
 const prefixOf = (packId: string): string => packId.replace(/-ru$/, '')
@@ -325,13 +359,33 @@ function main(): void {
     /** Слова, уже ушедшие в предыдущие кроссворды этой темы. */
     const spent = new Set<string>()
 
-    SIZES.forEach((size, index) => {
+    LEVELS.forEach((size, index) => {
       const id = `${prefixOf(pack.id)}-${index + 1}`
-      const title = titles[index] as string
+      const title = titles[index] ?? `Уровень ${index + 1}`
       // В лёгкий кроссворд слова для знатоков не берём вовсе, в средний и
       // сложный — берём: там они и должны быть.
       const allowed = size.difficulty === 'easy' ? words.filter((w) => !hard.has(w)) : words
-      const grid = best(allowed, size.rows, size.cols, TRIES, spent, topical)
+      // Потраченные слова именно вычитаются из запаса, а не задвигаются в конец
+      // очереди: иначе на дальних уровнях темы начинают повторяться те же ответы,
+      // и «следующий уровень» перестаёт отличаться от предыдущего. Цена — сетка
+      // тем мельче, чем ближе к концу лестницы: запас слов конечен.
+      const fresh = allowed.filter((w) => !spent.has(w))
+      // Тематические слова делятся поровну между оставшимися уровнями, а не
+      // отдаются первому желающему. Без этого ранние уровни выгребают их все,
+      // последним достаются одни словарные филлеры, и тематичность там падает
+      // ниже порога из ТЗ — валидатор такую сетку не пропускает.
+      // Делится и то и другое: ограничить только тематические мало — генератор
+      // берёт слово по тому, влезает ли оно в сетку, и охотно наберёт сетку
+      // из одних филлеров, если их предложить без счёта. Деление само себя
+      // выправляет: неистраченное остаётся свежим, а делитель убывает.
+      const levelsLeft = LEVELS.length - index
+      const freshTopical = fresh.filter((w) => topical.has(w))
+      const freshFiller = fresh.filter((w) => !topical.has(w))
+      const pool = [
+        ...freshTopical.slice(0, Math.ceil(freshTopical.length / levelsLeft)),
+        ...freshFiller.slice(0, Math.ceil(freshFiller.length / levelsLeft)),
+      ]
+      const grid = best(pool, size.rows, size.cols, TRIES, spent, topical)
       const puzzle = build(pack, grid, { id, title, difficulty: size.difficulty })
       const answers = parseGrid(grid).entries.map((entry) => entry.answer)
       const repeats = answers.filter((word) => spent.has(word)).length

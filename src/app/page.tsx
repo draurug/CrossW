@@ -1,4 +1,5 @@
 import { PuzzleCard } from '@/components/PuzzleCard'
+import { RandomPuzzle } from '@/components/RandomPuzzle'
 import { TopicCard } from '@/components/TopicCard'
 import { puzzles, puzzlesOfTopic, topics } from '@/generated/catalog'
 import { ru } from '@/i18n/ru'
@@ -19,6 +20,15 @@ export default function HomePage() {
       <p className="mt-5 max-w-2xl text-lg leading-relaxed" style={{ color: 'var(--muted)' }}>
         {ru.homeLead}
       </p>
+
+      <section className="mt-10">
+        <h2 className="text-sm font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+          {ru.randomTitle}
+        </h2>
+        <div className="mt-4">
+          <RandomPuzzle />
+        </div>
+      </section>
 
       {startHere.length > 0 && (
         <section className="mt-14">
