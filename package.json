@@ -9,6 +9,7 @@
     "dev": "next dev",
     "build": "npm run content && next build",
     "start": "npx serve out",
+    "deploy": "npm run build && npx wrangler deploy",
     "content": "tsx tools/build-content.ts",
     "validate": "tsx tools/validate.ts",
     "gen": "tsx tools/gen.ts",

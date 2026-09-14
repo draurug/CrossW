@@ -1,0 +1,19 @@
+{
+  // Деплой на Cloudflare Workers. Воркер здесь не выполняет кода: сайт
+  // статический, и его задача — отдать готовые файлы из out/.
+  //
+  // Раньше настройка жила только в панели Cloudflare, а в next.config.mjs
+  // ради неё стоял `output: 'standalone'` — то есть Next запускался
+  // приложением внутри воркера. Для сайта без сервера и базы это машинерия
+  // впустую, и вдобавок сборка на машине расходилась со сборкой в облаке.
+  "name": "crossw",
+  "compatibility_date": "2026-09-14",
+  "assets": {
+    "directory": "./out",
+    // `trailingSlash: true` в Next означает, что каждой странице отвечает
+    // каталог с index.html: /crossword/emelya-1/ → out/crossword/emelya-1/index.html.
+    "html_handling": "auto-trailing-slash",
+    // Своя страница 404 вместо пустого ответа Cloudflare.
+    "not_found_handling": "404-page"
+  }
+}

@@ -15,8 +15,13 @@ npm run review     # что стоит посмотреть глазами: до
 npm run refresh    # gen → content → validate одной командой
 npm run content    # content/ → public/p/  (входит в build)
 npm run build      # статический экспорт в out/
+npm run deploy     # сборка и выкладка на Cloudflare Workers
 npm run typecheck  # tsc --noEmit
 ```
+
+Деплой описан в `wrangler.jsonc`: воркер не выполняет кода, а отдаёт готовые файлы
+из `out/`. Настройка лежит в репозитории намеренно — когда она жила только в панели
+Cloudflare, сборка на машине расходилась со сборкой в облаке.
 
 ## Кто пишет контент
 
