@@ -412,13 +412,44 @@ describe('подтверждение верных букв', () => {
     expect(checked.wrong.has(cell)).toBe(false)
   })
 
-  it('исправление буквы снимает подтверждение со старой', () => {
-    const typed = applyLetter(ix, s0, (SOLUTION as string)[0] as string)
+  // Раньше ввод поверх подтверждённой буквы снимал подтверждение и заменял
+  // букву. От этого разобранная половина кроссворда рассыпалась от одного
+  // промаха по клавише — ровно того, от чего проверку и нажимали. Теперь
+  // подтверждённая клетка заперта, и три теста ниже держат этот контракт.
+  it('ввод поверх подтверждённой буквы её не меняет', () => {
+    const right = (SOLUTION as string)[0] as string
+    const typed = applyLetter(ix, s0, right)
     const checked = check(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
     const cell = cursorCell(ix, { entryId: 1, pos: 0 }) as number
-    const other = (SOLUTION as string)[0] === 'А' ? 'Б' : 'А'
+    const other = right === 'А' ? 'Б' : 'А'
     const retyped = applyLetter(ix, { ...checked, cursor: { entryId: 1, pos: 0 } }, other)
-    expect(retyped.correct.has(cell)).toBe(false)
+    expect(retyped.letters[cell]).toBe(right)
+    expect(retyped.correct.has(cell)).toBe(true)
+  })
+
+  it('каретка всё равно идёт дальше: набор слова не спотыкается о проверенное', () => {
+    const right = (SOLUTION as string)[0] as string
+    const typed = applyLetter(ix, s0, right)
+    const checked = check(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
+    const retyped = applyLetter(ix, { ...checked, cursor: { entryId: 1, pos: 0 } }, 'А')
+    expect(retyped.cursor.pos).toBeGreaterThan(0)
+  })
+
+  it('Backspace и Delete подтверждённую букву не стирают', () => {
+    const right = (SOLUTION as string)[0] as string
+    const typed = applyLetter(ix, s0, right)
+    const checked = check(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
+    const cell = cursorCell(ix, { entryId: 1, pos: 0 }) as number
+    const at = { ...checked, cursor: { entryId: 1, pos: 0 } }
+    expect(backspace(ix, at).letters[cell]).toBe(right)
+    expect(deleteAtCursor(ix, at).letters[cell]).toBe(right)
+  })
+
+  it('полный сброс снимает и запертые клетки', () => {
+    const typed = applyLetter(ix, s0, (SOLUTION as string)[0] as string)
+    const checked = check(ix, { ...typed, cursor: { entryId: 1, pos: 0 } }, SOLUTION, 'letter')
+    expect(checked.correct.size).toBe(1)
+    expect(initialState(ix).correct.size).toBe(0)
   })
 
   it('неверная буква в подтверждённые не попадает', () => {

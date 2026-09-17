@@ -324,6 +324,18 @@ function writeCell(state: PlayState, cell: number, letter: string | null): PlayS
   return { ...state, letters, revealed, wrong, correct }
 }
 
+/**
+ * Заперта ли клетка: буква в ней подтверждена проверкой.
+ *
+ * Подтверждённую букву игрок стереть не может — ни вводом поверх, ни
+ * Backspace, ни Delete. Иначе разобранная половина кроссворда рассыпается
+ * от одного промаха по клавише, а именно за этим проверку и нажимали.
+ * Полный сброс партии (`initialState`) снимает и это: он на то и полный.
+ */
+function isLocked(state: PlayState, cell: number): boolean {
+  return state.correct.has(cell)
+}
+
 function dropFrom(set: ReadonlySet<number>, cell: number): ReadonlySet<number> {
   if (!set.has(cell)) return set
   const next = new Set(set)
@@ -362,6 +374,12 @@ export function applyLetter(ix: PuzzleIndex, state: PlayState, raw: string): Pla
   const cell = cursorCell(ix, state.cursor)
   if (cell === null) return state
 
+  // Поверх подтверждённой буквы не пишем, но каретку пропускаем дальше:
+  // так набор слова целиком не спотыкается о проверенные клетки.
+  if (isLocked(state, cell)) {
+    return { ...state, cursor: advance(ix, state.letters, state.cursor) }
+  }
+
   const written = writeCell(state, cell, letter)
   return { ...written, cursor: advance(ix, written.letters, state.cursor) }
 }
@@ -379,14 +397,22 @@ export function backspace(ix: PuzzleIndex, state: PlayState): PlayState {
   const cell = entry.cells[state.cursor.pos]
   if (cell === undefined) return state
 
+  const back = Math.max(0, state.cursor.pos - 1)
+
   if (state.letters[cell] !== undefined) {
-    const back = Math.max(0, state.cursor.pos - 1)
+    // Подтверждённую букву не стираем — просто отходим назад.
+    if (isLocked(state, cell)) {
+      return { ...state, cursor: { entryId: state.cursor.entryId, pos: back } }
+    }
     return { ...writeCell(state, cell, null), cursor: { entryId: state.cursor.entryId, pos: back } }
   }
 
   const prevPos = state.cursor.pos - 1
   const prevCell = prevPos >= 0 ? entry.cells[prevPos] : undefined
   if (prevCell === undefined) return state
+  if (isLocked(state, prevCell)) {
+    return { ...state, cursor: { entryId: state.cursor.entryId, pos: prevPos } }
+  }
   return {
     ...writeCell(state, prevCell, null),
     cursor: { entryId: state.cursor.entryId, pos: prevPos },
@@ -397,6 +423,7 @@ export function backspace(ix: PuzzleIndex, state: PlayState): PlayState {
 export function deleteAtCursor(ix: PuzzleIndex, state: PlayState): PlayState {
   const cell = cursorCell(ix, state.cursor)
   if (cell === null || state.letters[cell] === undefined) return state
+  if (isLocked(state, cell)) return state
   return writeCell(state, cell, null)
 }
 
