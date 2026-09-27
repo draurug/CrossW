@@ -121,9 +121,9 @@ function ClueItem({
           )}
           {/* Цитата — отдельной строкой: она длиннее категории и в строку
               с определением не встаёт, а курсивом видно, что это чужая речь. */}
-          {showQuote && (
+          {showQuote && entry.quote !== undefined && (
             <span className="mt-0.5 block italic" style={{ color: 'var(--muted)' }}>
-              {entry.quote ?? ru.quoteMissing}
+              {entry.quote}
             </span>
           )}
         </span>

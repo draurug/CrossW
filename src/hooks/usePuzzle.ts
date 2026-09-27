@@ -232,6 +232,8 @@ export interface PuzzleApi {
   onRevealCategory: () => void
   /** Слова, у которых игрок открыл цитату. */
   revealedQuotes: ReadonlySet<number>
+  /** У активного слова есть цитата. Цитаты есть не у всех слов, словарные их не имеют вовсе. */
+  quoteAvailable: boolean
   /** Открыть цитату активного слова. Вторая ступень: букв тоже не выдаёт. */
   onRevealQuote: () => void
   onHint: () => void
@@ -366,13 +368,17 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
   /** Открытые цитаты. Хранятся так же и по той же причине, что категории. */
   const [revealedQuotes, setRevealedQuotes] = useState<ReadonlySet<number>>(new Set())
 
+  const quoteAvailable = ix.byId.get(state.cursor.entryId)?.quote !== undefined
+
   const onRevealQuote = useCallback((): void => {
+    // Слово без цитаты счётчик не трогает: игрок ничего не узнал.
+    if (!quoteAvailable) return
     setRevealedQuotes((prev) => {
       if (prev.has(state.cursor.entryId)) return prev
       return new Set(prev).add(state.cursor.entryId)
     })
     focusInput()
-  }, [state.cursor.entryId, focusInput])
+  }, [quoteAvailable, state.cursor.entryId, focusInput])
 
   const onHint = useCallback((): void => {
     setState((prev) => revealLetter(ix, prev, solution))
@@ -486,6 +492,7 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
     revealedCategories,
     onRevealCategory,
     revealedQuotes,
+    quoteAvailable,
     onRevealQuote,
     onHint,
     onClear,

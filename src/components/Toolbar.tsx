@@ -30,6 +30,8 @@ export interface ToolbarProps {
   onRevealCategory: () => void
   /** Сколько цитат игрок открыл. */
   quotes: number
+  /** У активного слова есть цитата. Нет — кнопка выключена, а не обещает пустоту. */
+  quoteAvailable: boolean
   onRevealQuote: () => void
   onHint: () => void
   onClear: () => void
@@ -45,6 +47,7 @@ export function Toolbar({
   categories,
   onRevealCategory,
   quotes,
+  quoteAvailable,
   onRevealQuote,
   onHint,
   onClear,
@@ -81,7 +84,13 @@ export function Toolbar({
       <button type="button" className={BUTTON} onClick={onRevealCategory}>
         {ru.categoryHint}
       </button>
-      <button type="button" className={BUTTON} onClick={onRevealQuote}>
+      <button
+        type="button"
+        className={BUTTON}
+        disabled={!quoteAvailable}
+        title={quoteAvailable ? undefined : ru.quoteMissing}
+        onClick={onRevealQuote}
+      >
         {ru.quoteHint}
       </button>
       <button type="button" className={BUTTON} disabled={!ready} onClick={onHint}>

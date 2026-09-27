@@ -96,6 +96,7 @@ function Board({ puzzle, solution }: { puzzle: CompiledPuzzle; solution: string 
         categories={api.revealedCategories.size}
         onRevealCategory={api.onRevealCategory}
         quotes={api.revealedQuotes.size}
+        quoteAvailable={api.quoteAvailable}
         onRevealQuote={api.onRevealQuote}
         onHint={api.onHint}
         onClear={api.onClear}
