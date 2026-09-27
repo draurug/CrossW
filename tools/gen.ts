@@ -48,6 +48,21 @@ const empty = (rows: number, cols: number): Grid =>
 const render = (grid: Grid): string[] => grid.map((row) => row.join(''))
 
 /**
+ * Срезать пустые края. Размер уровня — потолок, а не обещание: когда слов
+ * не хватает, они занимают угол сетки, и без обрезки на странице над
+ * кроссвордом висят ряды невидимых блоков.
+ */
+function crop(grid: string[]): string[] {
+  const filled = (s: string) => [...s].some((ch) => ch !== BLOCK)
+  const rows = grid.filter(filled)
+  const cols = (rows[0] ?? '').length
+  const used = Array.from({ length: cols }, (_, c) => rows.some((row) => row[c] !== BLOCK))
+  const first = used.indexOf(true)
+  const last = used.lastIndexOf(true)
+  return rows.map((row) => row.slice(first, last + 1))
+}
+
+/**
  * Можно ли положить слово, и если да — новая сетка.
  *
  * Проверка одна: разобрать получившуюся сетку и убедиться, что каждое слово в
@@ -151,7 +166,7 @@ function generate(
     }
   }
 
-  return render(grid)
+  return crop(render(grid))
 }
 
 /** Первое место, куда слово встаёт, зацепившись буквой за уже стоящее. */
@@ -393,7 +408,7 @@ function main(): void {
 
       writeFileSync(join(dir, `${id}.json`), `${JSON.stringify(puzzle, null, 2)}\n`)
       console.log(
-        `  ${id} «${title}» — ${size.rows}×${size.cols}, слов ${answers.length}, повторов ${repeats}`,
+        `  ${id} «${title}» — ${grid.length}×${grid[0]?.length ?? 0}, слов ${answers.length}, повторов ${repeats}`,
       )
     })
   }
