@@ -34,6 +34,7 @@ export interface ToolbarProps {
   quoteAvailable: boolean
   onRevealQuote: () => void
   onHint: () => void
+  onRevealFirstLetters: () => void
   onClear: () => void
 }
 
@@ -50,6 +51,7 @@ export function Toolbar({
   quoteAvailable,
   onRevealQuote,
   onHint,
+  onRevealFirstLetters,
   onClear,
 }: ToolbarProps) {
   return (
@@ -95,6 +97,9 @@ export function Toolbar({
       </button>
       <button type="button" className={BUTTON} disabled={!ready} onClick={onHint}>
         {ru.hint}
+      </button>
+      <button type="button" className={BUTTON} disabled={!ready} onClick={onRevealFirstLetters}>
+        {ru.firstLetters}
       </button>
       <button
         type="button"

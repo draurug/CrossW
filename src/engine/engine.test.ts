@@ -21,6 +21,7 @@ import {
   moveGrid,
   normalizeInput,
   parseProgress,
+  revealFirstLetters,
   revealLetter,
   selectEntry,
   serializeProgress,
@@ -277,6 +278,25 @@ describe('проверка и подсказки', () => {
     expect(first.hints).toBe(1)
     const again = revealLetter(ix, { ...first, cursor: { entryId: 1, pos: 0 } }, SOLUTION)
     expect(again.hints).toBe(1)
+  })
+
+  it('первые буквы открываются у всех слов разом, каретка не двигается', () => {
+    const opened = revealFirstLetters(ix, s0, SOLUTION)
+    // Начала слов: у ШАР и ШОУ оно общее, поэтому клеток меньше, чем слов.
+    const starts = new Set(ix.order.map((e) => e.cells[0]))
+    expect(opened.revealed.size).toBe(starts.size)
+    expect(opened.hints).toBe(starts.size)
+    expect(opened.letters[at(0, 1)]).toBe('Ш')
+    expect(opened.letters[at(8, 5)]).toBe('Н')
+    expect(opened.cursor).toEqual(s0.cursor)
+    expect(revealFirstLetters(ix, opened, SOLUTION).hints).toBe(opened.hints)
+  })
+
+  it('верную букву игрока первые буквы помечают, но не засчитывают', () => {
+    const typed = applyLetter(ix, s0, 'Ш')
+    const opened = revealFirstLetters(ix, typed, SOLUTION)
+    expect(opened.revealed.has(at(0, 1))).toBe(true)
+    expect(opened.hints).toBe(new Set(ix.order.map((e) => e.cells[0])).size - 1)
   })
 
   it('ручной ввод снимает пометку подсказки', () => {

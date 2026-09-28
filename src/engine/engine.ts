@@ -547,6 +547,40 @@ export function revealLetter(ix: PuzzleIndex, state: PlayState, solution: string
   }
 }
 
+/**
+ * Подсказка на весь кроссворд: первая буква каждого слова.
+ *
+ * Счётчик растёт только за клетки, где игрок правильной буквы не знал. Верная
+ * буква, уже стоявшая в клетке, тоже помечается открытой, но бесплатно: иначе
+ * по непомеченным клеткам было бы видно, какие из своих букв игрок угадал.
+ * Каретка остаётся на месте — это подсказка не про активное слово.
+ */
+export function revealFirstLetters(
+  ix: PuzzleIndex,
+  state: PlayState,
+  solution: string | null,
+): PlayState {
+  if (!solutionFits(ix, solution)) return state
+  let next = state
+  let hints = state.hints
+  const revealed = new Set(state.revealed)
+
+  for (const entry of ix.order) {
+    const cell = entry.cells[0]
+    if (cell === undefined || revealed.has(cell)) continue
+    const at = ix.solutionAt.get(cell)
+    const letter = at === undefined ? undefined : solution[at]
+    if (letter === undefined) continue
+    if (next.letters[cell] !== letter) {
+      next = writeCell(next, cell, letter)
+      hints += 1
+    }
+    revealed.add(cell)
+  }
+
+  return { ...next, revealed, hints, cursor: state.cursor }
+}
+
 /** Все ли буквенные клетки заполнены. */
 export function isFilled(ix: PuzzleIndex, state: PlayState): boolean {
   return ix.letterCells.every((cell) => state.letters[cell] !== undefined)

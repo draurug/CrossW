@@ -28,6 +28,7 @@ import {
   isSolved,
   moveGrid,
   parseProgress,
+  revealFirstLetters,
   revealLetter,
   selectEntry,
   serializeProgress,
@@ -237,6 +238,8 @@ export interface PuzzleApi {
   /** Открыть цитату активного слова. Вторая ступень: букв тоже не выдаёт. */
   onRevealQuote: () => void
   onHint: () => void
+  /** Открыть первую букву каждого слова разом. */
+  onRevealFirstLetters: () => void
   onClear: () => void
 }
 
@@ -385,6 +388,11 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
     focusInput()
   }, [ix, solution, focusInput])
 
+  const onRevealFirstLetters = useCallback((): void => {
+    setState((prev) => revealFirstLetters(ix, prev, solution))
+    focusInput()
+  }, [ix, solution, focusInput])
+
   const onClear = useCallback((): void => {
     setLastCheck(null)
     setState(initialState(ix))
@@ -495,6 +503,7 @@ export function usePuzzle(puzzle: CompiledPuzzle, solution: string | null): Puzz
     quoteAvailable,
     onRevealQuote,
     onHint,
+    onRevealFirstLetters,
     onClear,
   }
 }

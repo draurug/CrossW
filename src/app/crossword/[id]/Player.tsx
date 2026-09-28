@@ -99,6 +99,7 @@ function Board({ puzzle, solution }: { puzzle: CompiledPuzzle; solution: string 
         quoteAvailable={api.quoteAvailable}
         onRevealQuote={api.onRevealQuote}
         onHint={api.onHint}
+        onRevealFirstLetters={api.onRevealFirstLetters}
         onClear={api.onClear}
       />
 
